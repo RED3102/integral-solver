@@ -1,3 +1,7 @@
+"""
+validator.py - Validates user input before symbolic processing.
+"""
+
 import sympy
 from sympy.parsing.sympy_parser import (
     parse_expr,
@@ -11,12 +15,17 @@ TRANSFORMATIONS = standard_transformations + (
     convert_xor,
 )
 
+
 def validate_input(raw_input: str):
+    """
+    Validates the raw string from the user input field.
+    Returns (is_valid, error_message, parsed_expression).
+    """
     stripped = raw_input.strip()
 
     # Check 1: empty input
     if not stripped:
-        return False, "Input cannot be empty. Please enter a function f(x).", None
+        return False, "Please enter a function before clicking Integrate.", None
 
     local_dict = {
         "x": sympy.Symbol("x"),
@@ -34,13 +43,24 @@ def validate_input(raw_input: str):
     # Check 2: parse expression
     try:
         expr = parse_expr(stripped, local_dict=local_dict, transformations=TRANSFORMATIONS)
-    except Exception as e:
-        return False, f"Could not parse '{stripped}'.\nTip: Use * for multiplication, ^ for powers.\nDetails: {e}", None
+    except Exception:
+        return (
+            False,
+            f"Could not read '{stripped}' as a valid expression.\n"
+            "Check your syntax — use * for multiplication and ^ for powers.\n"
+            "Example: 3*x^2 + sin(x)",
+            None,
+        )
 
     # Check 3: must contain x
     x = sympy.Symbol("x")
     if x not in expr.free_symbols and expr.free_symbols:
         unknown = ", ".join(str(s) for s in expr.free_symbols)
-        return False, f"Unknown symbol(s): {unknown}. Please use x as the variable.", None
+        return (
+            False,
+            f"'{unknown}' is not recognised as a valid variable.\n"
+            "Please write your function in terms of x.",
+            None,
+        )
 
     return True, "", expr
