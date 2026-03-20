@@ -1,7 +1,3 @@
-"""
-verifier.py - Verifies the computed antiderivative by differentiating it.
-"""
-
 import sympy
 from sympy import Symbol, diff
 from core.formatter import fmt

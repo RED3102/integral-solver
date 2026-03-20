@@ -1,7 +1,3 @@
-"""
-validator.py - Validates user input before symbolic processing.
-"""
-
 import sympy
 from sympy.parsing.sympy_parser import (
     parse_expr,

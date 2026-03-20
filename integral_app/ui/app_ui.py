@@ -1,7 +1,3 @@
-"""
-app_ui.py - Tkinter GUI for the Indefinite Integration Generator.
-"""
-
 import tkinter as tk
 from tkinter import font as tkfont
 
@@ -69,8 +65,6 @@ class IntegrationApp(tk.Tk):
         input_frame.columnconfigure(1, weight=1)
 
         tk.Label(input_frame,
-                 text="Examples:  3*x^2    sin(x)    exp(x)    3*x^2 + sin(x) - 4/x + exp(x)",
-                 font=tkfont.Font(family="Arial", size=9),
                  fg="#666666", bg="#F0F0F0").grid(row=1, column=0, columnspan=4, sticky="w", pady=(4, 0))
 
         # Status label

@@ -1,7 +1,3 @@
-"""
-trail_logger.py - Builds the plain-text step-by-step solution trail.
-"""
-
 import sympy
 from sympy import Symbol
 from core.engine import get_terms, integrate_term
