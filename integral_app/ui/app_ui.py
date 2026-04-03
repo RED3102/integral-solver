@@ -1,3 +1,8 @@
+"""
+app_ui.py - Tkinter GUI for the Indefinite Integration Generator.
+Week 8 - Dark professional theme.
+"""
+
 import tkinter as tk
 from tkinter import font as tkfont, ttk
 
@@ -7,141 +12,242 @@ from core.trail_logger import build_trail
 from core.verifier import verify
 from core.formatter import fmt
 
+# ── Colour palette ─────────────────────────────────────────────────────────────
+BG_MAIN    = "#0f0f1a"   # deep navy — main window
+BG_PANEL   = "#1a1a2e"   # slightly lighter — panels
+BG_CARD    = "#16213e"   # card surfaces
+BG_INPUT   = "#0f3460"   # input field background
+BG_CALC    = "#1a1a2e"   # calculator panel
+ACCENT     = "#4cc9f0"   # cyan blue — primary accent
+ACCENT2    = "#7209b7"   # purple — secondary
+SUCCESS    = "#4ade80"   # green for correct results
+ERROR_COL  = "#f72585"   # pink/red for errors
+TEXT_MAIN  = "#e2e8f0"   # primary text
+TEXT_DIM   = "#94a3b8"   # secondary/hint text
+TEXT_CODE  = "#7dd3fc"   # code/math text
+BTN_INT    = "#4361ee"   # integrate button
+BTN_CLR    = "#334155"   # clear button
+DIVIDER    = "#1e293b"   # subtle dividers
+
 
 class IntegrationApp(tk.Tk):
-    """Main application window."""
+    """Main application window — dark professional theme."""
 
     def __init__(self):
         super().__init__()
-        self.title("Indefinite Integration Generator")
-        self.geometry("1000x660")
-        self.minsize(1000, 500)
-        self.configure(bg="#F0F0F0")
-        self._history = []          # stores last 5 successful inputs
+        self.title("IntegralSolver")
+        self.geometry("1100x700")
+        self.minsize(1000, 560)
+        self.configure(bg=BG_MAIN)
+        self._history = []
         self._build_fonts()
+        self._build_styles()
         self._build_ui()
 
     def _build_fonts(self):
-        self.font_label  = tkfont.Font(family="Arial",       size=11)
-        self.font_input  = tkfont.Font(family="Courier New", size=12)
-        self.font_answer = tkfont.Font(family="Courier New", size=12, weight="bold")
-        self.font_trail  = tkfont.Font(family="Courier New", size=10)
-        self.font_btn    = tkfont.Font(family="Arial",       size=11)
-        self.font_title  = tkfont.Font(family="Arial",       size=13, weight="bold")
-        self.font_status = tkfont.Font(family="Arial",       size=9,  slant="italic")
-        self.font_calc   = tkfont.Font(family="Courier New", size=10)
+        self.font_title   = tkfont.Font(family="Arial",       size=15, weight="bold")
+        self.font_sub     = tkfont.Font(family="Arial",       size=9)
+        self.font_label   = tkfont.Font(family="Arial",       size=10)
+        self.font_input   = tkfont.Font(family="Courier New", size=12)
+        self.font_answer  = tkfont.Font(family="Courier New", size=13, weight="bold")
+        self.font_trail   = tkfont.Font(family="Courier New", size=10)
+        self.font_btn     = tkfont.Font(family="Arial",       size=10, weight="bold")
+        self.font_status  = tkfont.Font(family="Arial",       size=9,  slant="italic")
+        self.font_calc    = tkfont.Font(family="Courier New", size=9)
+        self.font_section = tkfont.Font(family="Arial",       size=8,  weight="bold")
+
+    def _build_styles(self):
+        style = ttk.Style(self)
+        style.theme_use("clam")
+        style.configure("Dark.TCombobox",
+            fieldbackground=BG_INPUT,
+            background=BG_PANEL,
+            foreground=TEXT_MAIN,
+            selectbackground=BTN_INT,
+            selectforeground="white",
+            borderwidth=0,
+        )
+        style.map("Dark.TCombobox",
+            fieldbackground=[("readonly", BG_INPUT)],
+            foreground=[("readonly", TEXT_MAIN)],
+        )
 
     def _build_ui(self):
-        # Title bar
-        title_frame = tk.Frame(self, bg="#2E75B6", pady=10)
-        title_frame.pack(fill=tk.X)
-        tk.Label(title_frame, text="Indefinite Integration Generator",
-                 font=self.font_title, fg="white", bg="#2E75B6").pack()
-        tk.Label(title_frame,
-                 text="Enter a function f(x) to compute its antiderivative with step-by-step explanation.",
-                 font=tkfont.Font(family="Arial", size=9),
-                 fg="#D9E2F3", bg="#2E75B6").pack()
+        # ── Header ─────────────────────────────────────────────────────────
+        header = tk.Frame(self, bg=BG_PANEL, pady=14)
+        header.pack(fill=tk.X)
 
-        # Main body — left (solver) and right (calculator panel)
-        body_frame = tk.Frame(self, bg="#F0F0F0")
-        body_frame.pack(fill=tk.BOTH, expand=True)
+        # Left accent bar
+        tk.Frame(header, bg=ACCENT, width=4).pack(side=tk.LEFT, fill=tk.Y, padx=(16, 12))
 
-        # ── LEFT SIDE ──────────────────────────────────────────────────────
-        left_frame = tk.Frame(body_frame, bg="#F0F0F0")
-        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        title_block = tk.Frame(header, bg=BG_PANEL)
+        title_block.pack(side=tk.LEFT)
+        tk.Label(title_block, text="IntegralSolver",
+                 font=self.font_title, fg=ACCENT, bg=BG_PANEL).pack(anchor="w")
+        tk.Label(title_block,
+                 text="Indefinite Integration Generator  ·  Step-by-Step Solution Trail",
+                 font=self.font_sub, fg=TEXT_DIM, bg=BG_PANEL).pack(anchor="w")
 
-        # Input row
-        input_frame = tk.Frame(left_frame, bg="#F0F0F0", pady=12, padx=16)
-        input_frame.pack(fill=tk.X)
+        # Status dot on the right
+        self.status_var = tk.StringVar(value="● Ready")
+        self.status_dot = tk.Label(header, textvariable=self.status_var,
+                                   font=self.font_status, fg=TEXT_DIM, bg=BG_PANEL)
+        self.status_dot.pack(side=tk.RIGHT, padx=20)
 
-        tk.Label(input_frame, text="Enter f(x):",
-                 font=self.font_label, bg="#F0F0F0").grid(row=0, column=0, sticky="w", padx=(0, 8))
+        # ── Body — left + right ────────────────────────────────────────────
+        body = tk.Frame(self, bg=BG_MAIN)
+        body.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
 
-        self.entry = tk.Entry(input_frame, font=self.font_input, relief=tk.SUNKEN, bd=2, width=34)
-        self.entry.grid(row=0, column=1, sticky="ew", padx=(0, 8), ipady=4)
+        left  = tk.Frame(body, bg=BG_MAIN)
+        left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(16, 8), pady=12)
+
+        # ── Input card ─────────────────────────────────────────────────────
+        input_card = tk.Frame(left, bg=BG_CARD, pady=14, padx=16,
+                              highlightbackground=ACCENT, highlightthickness=1)
+        input_card.pack(fill=tk.X, pady=(0, 10))
+
+        tk.Label(input_card, text="FUNCTION INPUT",
+                 font=self.font_section, fg=ACCENT, bg=BG_CARD).grid(
+                 row=0, column=0, columnspan=4, sticky="w", pady=(0, 8))
+
+        tk.Label(input_card, text="f(x) =",
+                 font=self.font_label, fg=TEXT_DIM, bg=BG_CARD).grid(
+                 row=1, column=0, sticky="w", padx=(0, 10))
+
+        self.entry = tk.Entry(input_card,
+                              font=self.font_input,
+                              bg=BG_INPUT, fg=TEXT_CODE,
+                              insertbackground=ACCENT,
+                              relief=tk.FLAT,
+                              highlightthickness=1,
+                              highlightcolor=ACCENT,
+                              highlightbackground=DIVIDER,
+                              width=38)
+        self.entry.grid(row=1, column=1, sticky="ew", padx=(0, 10), ipady=6)
         self.entry.bind("<Return>", lambda e: self._on_integrate())
         self.entry.bind("<KeyRelease>", self._on_input_change)
         self.entry.focus_set()
 
         self.integrate_btn = tk.Button(
-            input_frame, text="Integrate", font=self.font_btn,
-            bg="#2E75B6", fg="white", relief=tk.FLAT, padx=12, pady=4,
+            input_card, text="INTEGRATE",
+            font=self.font_btn,
+            bg=BTN_INT, fg="white",
+            relief=tk.FLAT, padx=14, pady=6,
+            activebackground="#3451d1",
+            activeforeground="white",
+            cursor="hand2",
             command=self._on_integrate)
-        self.integrate_btn.grid(row=0, column=2, padx=(0, 6))
+        self.integrate_btn.grid(row=1, column=2, padx=(0, 6))
 
-        tk.Button(input_frame, text="Clear", font=self.font_btn,
-                  bg="#D0D0D0", fg="black", relief=tk.FLAT, padx=12, pady=4,
-                  command=self._on_clear).grid(row=0, column=3)
+        tk.Button(input_card, text="CLEAR",
+                  font=self.font_btn,
+                  bg=BTN_CLR, fg=TEXT_DIM,
+                  relief=tk.FLAT, padx=14, pady=6,
+                  activebackground="#475569",
+                  activeforeground="white",
+                  cursor="hand2",
+                  command=self._on_clear).grid(row=1, column=3)
 
-        input_frame.columnconfigure(1, weight=1)
+        input_card.columnconfigure(1, weight=1)
 
+        tk.Label(input_card,
+                 text="e.g.  3*x^2    sin(x)    exp(x)    3*x^2 + sin(x) - 4/x + exp(x)",
+                 font=self.font_status, fg=TEXT_DIM, bg=BG_CARD).grid(
+                 row=2, column=0, columnspan=4, sticky="w", pady=(8, 4))
 
-        # History dropdown — row 2
-        history_frame = tk.Frame(input_frame, bg="#F0F0F0")
-        history_frame.grid(row=2, column=0, columnspan=4, sticky="w", pady=(4, 0))
-
-        tk.Label(history_frame, text="History:",
-                 font=self.font_status, fg="#888888", bg="#F0F0F0").pack(side=tk.LEFT, padx=(0, 6))
-
+        # History row
+        hist_frame = tk.Frame(input_card, bg=BG_CARD)
+        hist_frame.grid(row=3, column=0, columnspan=4, sticky="w", pady=(4, 0))
+        tk.Label(hist_frame, text="History:",
+                 font=self.font_status, fg=TEXT_DIM, bg=BG_CARD).pack(side=tk.LEFT, padx=(0, 8))
         self.history_var = tk.StringVar(value="")
         self.history_dropdown = ttk.Combobox(
-            history_frame,
-            textvariable=self.history_var,
+            hist_frame, textvariable=self.history_var,
             font=tkfont.Font(family="Courier New", size=9),
-            state="readonly",
-            width=45,
-            values=[]
-        )
+            style="Dark.TCombobox",
+            state="readonly", width=44, values=[])
         self.history_dropdown.pack(side=tk.LEFT)
         self.history_dropdown.bind("<<ComboboxSelected>>", self._on_history_select)
 
-        # Status label — row 3
-        self.status_var = tk.StringVar(value="Ready")
-        tk.Label(input_frame, textvariable=self.status_var,
-                 font=self.font_status, fg="#888888",
-                 bg="#F0F0F0").grid(row=3, column=0, columnspan=4, sticky="w", pady=(2, 0))
+        # ── Result card ────────────────────────────────────────────────────
+        result_card = tk.Frame(left, bg=BG_CARD, pady=12, padx=16,
+                               highlightbackground=DIVIDER, highlightthickness=1)
+        result_card.pack(fill=tk.X, pady=(0, 10))
 
-        # Result display
-        ans_frame = tk.LabelFrame(left_frame, text="  Result  ", font=self.font_label,
-                                  bg="#F0F0F0", padx=12, pady=8)
-        ans_frame.pack(fill=tk.X, padx=16, pady=(0, 8))
+        tk.Label(result_card, text="RESULT",
+                 font=self.font_section, fg=ACCENT, bg=BG_CARD).pack(anchor="w", pady=(0, 6))
 
         self.answer_var = tk.StringVar(value="—")
-        self.answer_label = tk.Label(ans_frame, textvariable=self.answer_var,
-                                     font=self.font_answer, fg="#1F5C1F",
-                                     bg="#F0F0F0", wraplength=1200, justify=tk.LEFT)
+        self.answer_label = tk.Label(result_card,
+                                     textvariable=self.answer_var,
+                                     font=self.font_answer,
+                                     fg=SUCCESS, bg=BG_CARD,
+                                     wraplength=1200, justify=tk.LEFT)
         self.answer_label.pack(anchor="w")
 
-        # Solution trail
-        trail_frame = tk.LabelFrame(left_frame, text="  Solution Trail  ", font=self.font_label,
-                                    bg="#F0F0F0", padx=8, pady=6)
-        trail_frame.pack(fill=tk.BOTH, expand=True, padx=16, pady=(0, 4))
+        # ── Trail card ─────────────────────────────────────────────────────
+        trail_card = tk.Frame(left, bg=BG_CARD,
+                              highlightbackground=DIVIDER, highlightthickness=1)
+        trail_card.pack(fill=tk.BOTH, expand=True, pady=(0, 0))
 
-        self.trail_text = tk.Text(trail_frame, font=self.font_trail, bg="white", fg="#1A1A1A",
-                                  relief=tk.SUNKEN, bd=1, wrap=tk.NONE,
-                                  state=tk.DISABLED, padx=8, pady=6)
+        trail_header = tk.Frame(trail_card, bg=BG_CARD, padx=16, pady=8)
+        trail_header.pack(fill=tk.X)
+        tk.Label(trail_header, text="SOLUTION TRAIL",
+                 font=self.font_section, fg=ACCENT, bg=BG_CARD).pack(anchor="w")
+
+        trail_inner = tk.Frame(trail_card, bg=BG_CARD, padx=8, pady=0)
+        trail_inner.pack(fill=tk.BOTH, expand=True)
+
+        self.trail_text = tk.Text(
+            trail_inner,
+            font=self.font_trail,
+            bg=BG_PANEL, fg=TEXT_MAIN,
+            insertbackground=ACCENT,
+            relief=tk.FLAT,
+            wrap=tk.NONE,
+            state=tk.DISABLED,
+            padx=12, pady=10,
+            selectbackground=BTN_INT,
+            selectforeground="white")
         self.trail_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        v_scroll = tk.Scrollbar(trail_frame, command=self.trail_text.yview)
+        v_scroll = tk.Scrollbar(trail_inner, command=self.trail_text.yview,
+                                bg=BG_PANEL, troughcolor=BG_MAIN,
+                                activebackground=ACCENT)
         v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self.trail_text.configure(yscrollcommand=v_scroll.set)
 
-        h_scroll = tk.Scrollbar(left_frame, orient=tk.HORIZONTAL, command=self.trail_text.xview)
-        h_scroll.pack(fill=tk.X, padx=16, pady=(0, 8))
+        h_scroll = tk.Scrollbar(trail_card, orient=tk.HORIZONTAL,
+                                command=self.trail_text.xview,
+                                bg=BG_PANEL, troughcolor=BG_MAIN)
+        h_scroll.pack(fill=tk.X, padx=8, pady=(0, 6))
         self.trail_text.configure(xscrollcommand=h_scroll.set)
 
-        # ── RIGHT SIDE — Calculator Panel ──────────────────────────────────
-        self._build_calc_panel(body_frame)
+        # Text tags for colour-coded trail
+        self.trail_text.tag_configure("header",  foreground=ACCENT,    font=self.font_btn)
+        self.trail_text.tag_configure("rule",     foreground="#a78bfa")  # purple
+        self.trail_text.tag_configure("result",   foreground=SUCCESS)
+        self.trail_text.tag_configure("note",     foreground="#fbbf24")  # amber
+        self.trail_text.tag_configure("error",    foreground=ERROR_COL)
+        self.trail_text.tag_configure("verify",   foreground=SUCCESS)
+        self.trail_text.tag_configure("dim",      foreground=TEXT_DIM)
+
+        # ── RIGHT — Calculator panel ───────────────────────────────────────
+        self._build_calc_panel(body)
 
     def _build_calc_panel(self, parent):
-        """Builds the on-screen calculator panel on the right side."""
-        calc_frame = tk.LabelFrame(
-            parent, text="  Input Helper  ",
-            font=self.font_label,
-            bg="#E8E8E8", padx=8, pady=8,
-            relief=tk.GROOVE, bd=2
-        )
-        calc_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 12), pady=12)
+        calc = tk.Frame(parent, bg=BG_PANEL,
+                        highlightbackground=ACCENT, highlightthickness=1)
+        calc.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 16), pady=12)
+
+        tk.Label(calc, text="  INPUT HELPER  ",
+                 font=self.font_section, fg=ACCENT,
+                 bg=BG_PANEL, pady=8).pack(fill=tk.X)
+
+        tk.Frame(calc, bg=ACCENT, height=1).pack(fill=tk.X, padx=8)
+
+        btn_area = tk.Frame(calc, bg=BG_PANEL, padx=8, pady=8)
+        btn_area.pack()
 
         buttons = [
             [("sin(x)", "sin(x)"), ("cos(x)", "cos(x)"), ("tan(x)", "tan(x)")],
@@ -158,36 +264,39 @@ class IntegrationApp(tk.Tk):
 
         for row_data in buttons:
             if row_data is None:
-                tk.Label(calc_frame, text="── numbers & operators ──",
+                tk.Label(btn_area, text="─── numbers & ops ───",
                          font=tkfont.Font(family="Arial", size=8),
-                         fg="#999999", bg="#E8E8E8").pack(pady=(6, 2))
+                         fg=TEXT_DIM, bg=BG_PANEL).pack(pady=(6, 2))
                 continue
 
-            row_frame = tk.Frame(calc_frame, bg="#E8E8E8")
+            row_frame = tk.Frame(btn_area, bg=BG_PANEL)
             row_frame.pack(fill=tk.X, pady=1)
 
             for label, insert in row_data:
-                is_operator = insert in ("+", "-", "*", "/", "^", "DEL")
+                is_op  = insert in ("+", "-", "*", "/", "^", "DEL")
+                is_fn  = insert in ("sin(x)","cos(x)","tan(x)","exp(x)","log(x)","sqrt(x)")
+                bg_col = ERROR_COL if insert == "DEL" else \
+                         ACCENT2   if is_fn            else \
+                         BTN_INT   if is_op            else \
+                         BG_CARD
+                fg_col = "white"
+
                 btn = tk.Button(
-                    row_frame,
-                    text=label,
+                    row_frame, text=label,
                     font=self.font_calc,
-                    width=5,
-                    relief=tk.FLAT,
-                    bd=1,
-                    pady=4,
-                    bg="#E0E0E0" if is_operator else "#FFFFFF",
-                    fg="#1A1A1A",
-                    activebackground="#2E75B6",
-                    activeforeground="white",
-                    command=lambda ins=insert: self._calc_insert(ins)
-                )
+                    width=5, pady=5,
+                    relief=tk.FLAT, bd=0,
+                    bg=bg_col, fg=fg_col,
+                    activebackground=ACCENT,
+                    activeforeground=BG_MAIN,
+                    cursor="hand2",
+                    command=lambda ins=insert: self._calc_insert(ins))
                 btn.pack(side=tk.LEFT, padx=1)
 
+    # ── Logic ───────────────────────────────────────────────────────────────
+
     def _calc_insert(self, text):
-        """Inserts calculator button text at the current cursor position."""
         if text == "DEL":
-            # If there's a selection, delete it; otherwise delete char before cursor
             try:
                 self.entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
             except tk.TclError:
@@ -201,12 +310,10 @@ class IntegrationApp(tk.Tk):
         else:
             pos = self.entry.index(tk.INSERT)
             self.entry.insert(pos, text)
-
         self.entry.focus_set()
         self._on_input_change()
 
     def _update_history(self, raw: str):
-        """Adds a successful input to the history dropdown, max 5 items."""
         if raw in self._history:
             self._history.remove(raw)
         self._history.insert(0, raw)
@@ -214,7 +321,6 @@ class IntegrationApp(tk.Tk):
         self.history_dropdown.configure(values=self._history)
 
     def _on_history_select(self, event=None):
-        """Fills the entry field with the selected history item."""
         selected = self.history_var.get()
         if selected:
             self.entry.delete(0, tk.END)
@@ -224,17 +330,16 @@ class IntegrationApp(tk.Tk):
             self.history_dropdown.selection_clear()
 
     def _on_input_change(self, event=None):
-        """Clears stale result whenever the user edits the input field."""
         if event and event.keysym in (
-            "Shift_L", "Shift_R", "Control_L", "Control_R",
-            "Alt_L", "Alt_R", "Caps_Lock", "Tab",
-            "Left", "Right", "Up", "Down", "Home", "End"
+            "Shift_L","Shift_R","Control_L","Control_R",
+            "Alt_L","Alt_R","Caps_Lock","Tab",
+            "Left","Right","Up","Down","Home","End"
         ):
             return
         self.answer_var.set("—")
-        self.answer_label.configure(fg="#1F5C1F")
+        self.answer_label.configure(fg=SUCCESS)
         self._set_trail("")
-        self.status_var.set("Ready")
+        self._set_status("● Ready", TEXT_DIM)
 
     def _on_integrate(self):
         raw = self.entry.get()
@@ -244,8 +349,8 @@ class IntegrationApp(tk.Tk):
             self._show_error(err_msg)
             return
 
-        self.integrate_btn.configure(state=tk.DISABLED, text="Working...")
-        self.status_var.set("Computing...")
+        self.integrate_btn.configure(state=tk.DISABLED, text="WORKING...")
+        self._set_status("● Computing...", "#fbbf24")
         self.update_idletasks()
 
         try:
@@ -257,7 +362,7 @@ class IntegrationApp(tk.Tk):
             self._show_error(f"Unexpected error: {e}")
             return
         finally:
-            self.integrate_btn.configure(state=tk.NORMAL, text="Integrate")
+            self.integrate_btn.configure(state=tk.NORMAL, text="INTEGRATE")
 
         try:
             _, verification_msg = verify(expr, antiderivative)
@@ -269,32 +374,57 @@ class IntegrationApp(tk.Tk):
         except Exception as e:
             trail = f"Error building trail: {e}"
 
-        # Save to history on success
         self._update_history(raw)
-
-        self.answer_var.set(f"integral( {fmt(expr)} ) dx  =  {fmt(antiderivative)} + C")
-        self.answer_label.configure(fg="#1F5C1F")
-        self.status_var.set("Done")
+        self.answer_var.set(f"∫ ( {fmt(expr)} ) dx   =   {fmt(antiderivative)}  +  C")
+        self.answer_label.configure(fg=SUCCESS)
+        self._set_status("● Done", SUCCESS)
         self._set_trail(trail)
 
     def _on_clear(self):
         self.entry.delete(0, tk.END)
         self.answer_var.set("—")
-        self.answer_label.configure(fg="#1F5C1F")
-        self.status_var.set("Ready")
+        self.answer_label.configure(fg=SUCCESS)
+        self._set_status("● Ready", TEXT_DIM)
         self._set_trail("")
         self.entry.focus_set()
 
     def _show_error(self, message: str):
-        self.answer_var.set("Error: " + message.splitlines()[0])
-        self.answer_label.configure(fg="#B00000")
-        self.status_var.set("Error")
-        self.integrate_btn.configure(state=tk.NORMAL, text="Integrate")
-        self._set_trail("ERROR\n" + "-" * 55 + "\n" + message)
+        self.answer_var.set("⚠  " + message.splitlines()[0])
+        self.answer_label.configure(fg=ERROR_COL)
+        self._set_status("● Error", ERROR_COL)
+        self.integrate_btn.configure(state=tk.NORMAL, text="INTEGRATE")
+        self._set_trail(message, error=True)
 
-    def _set_trail(self, text: str):
+    def _set_status(self, text: str, color: str):
+        self.status_var.set(text)
+        self.status_dot.configure(fg=color)
+
+    def _set_trail(self, text: str, error: bool = False):
         self.trail_text.configure(state=tk.NORMAL)
         self.trail_text.delete("1.0", tk.END)
-        self.trail_text.insert(tk.END, text)
+
+        if error:
+            self.trail_text.insert(tk.END, text, "error")
+        else:
+            for line in text.splitlines(keepends=True):
+                stripped = line.strip()
+                if stripped.startswith("---"):
+                    self.trail_text.insert(tk.END, line, "dim")
+                elif any(stripped.startswith(k) for k in
+                         ("GIVEN","STEP","FINAL","VERIFICATION")):
+                    self.trail_text.insert(tk.END, line, "header")
+                elif stripped.startswith("Rule"):
+                    self.trail_text.insert(tk.END, line, "rule")
+                elif stripped.startswith("Formula"):
+                    self.trail_text.insert(tk.END, line, "rule")
+                elif stripped.startswith("Result"):
+                    self.trail_text.insert(tk.END, line, "result")
+                elif stripped.startswith("Note"):
+                    self.trail_text.insert(tk.END, line, "note")
+                elif "PASSED" in stripped or "[OK]" in stripped:
+                    self.trail_text.insert(tk.END, line, "verify")
+                else:
+                    self.trail_text.insert(tk.END, line)
+
         self.trail_text.configure(state=tk.DISABLED)
         self.trail_text.see("1.0")

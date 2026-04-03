@@ -1,3 +1,7 @@
+"""
+validator.py - Validates user input before symbolic processing.
+"""
+
 import sympy
 from sympy.parsing.sympy_parser import (
     parse_expr,
@@ -24,16 +28,33 @@ def validate_input(raw_input: str):
         return False, "Please enter a function before clicking Integrate.", None
 
     local_dict = {
-        "x": sympy.Symbol("x"),
-        "e": sympy.E,
-        "pi": sympy.pi,
-        "sin": sympy.sin,
-        "cos": sympy.cos,
-        "tan": sympy.tan,
-        "exp": sympy.exp,
-        "ln": sympy.ln,
-        "log": sympy.log,
+        "x":    sympy.Symbol("x"),
+        "e":    sympy.E,
+        "pi":   sympy.pi,
+        # Basic trig
+        "sin":  sympy.sin,
+        "cos":  sympy.cos,
+        "tan":  sympy.tan,
+        "sec":  sympy.sec,
+        "csc":  sympy.csc,
+        "cot":  sympy.cot,
+        # Inverse trig
+        "asin": sympy.asin,
+        "acos": sympy.acos,
+        "atan": sympy.atan,
+        "arcsin": sympy.asin,
+        "arccos": sympy.acos,
+        "arctan": sympy.atan,
+        # Hyperbolic
+        "sinh": sympy.sinh,
+        "cosh": sympy.cosh,
+        "tanh": sympy.tanh,
+        # Other
+        "exp":  sympy.exp,
+        "ln":   sympy.ln,
+        "log":  sympy.log,
         "sqrt": sympy.sqrt,
+        "abs":  sympy.Abs,
     }
 
     # Check 2: parse expression

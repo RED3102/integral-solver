@@ -1,15 +1,22 @@
+"""
+formatter.py - Converts raw SymPy string output into readable math notation.
+"""
+
 import re
+
 
 def fmt(expr) -> str:
     """
     Takes a SymPy expression and returns a clean readable string.
     Examples:
-        x**3        ->  x³
-        x**2        ->  x²
-        3*x         ->  3x
-        log(x)      ->  ln(x)
-        exp(x)      ->  eˣ
-        -cos(x)     ->  -cos(x)  (unchanged)
+        x**3            ->  x³
+        x**2            ->  x²
+        3*x             ->  3x
+        log(x)          ->  ln(x)
+        exp(x)          ->  e^x
+        atan(x)         ->  arctan(x)
+        asin(x)         ->  arcsin(x)
+        x*cos(x)        ->  x·cos(x)
     """
     s = str(expr)
     return _polish(s)
@@ -18,11 +25,16 @@ def fmt(expr) -> str:
 def _polish(s: str) -> str:
     """Applies all formatting rules to a raw SymPy string."""
 
-    # exp(x) -> eˣ  before anything else
-    s = s = s.replace("exp(x)", "e^x")
-    s = s = s.replace("exp(-x)", "e^(-x)")
+    # exp(x) -> e^x  (before other substitutions)
+    s = s.replace("exp(x)", "e^x")
+    s = s.replace("exp(-x)", "e^(-x)")
 
-    # log(x) -> ln(x)
+    # Inverse trig — must come before plain trig replacements
+    s = s.replace("atan(x)", "arctan(x)")
+    s = s.replace("asin(x)", "arcsin(x)")
+    s = s.replace("acos(x)", "arccos(x)")
+
+    # log -> ln
     s = s.replace("log(x)", "ln(x)")
     s = s.replace("log(", "ln(")
 
@@ -35,15 +47,19 @@ def _polish(s: str) -> str:
         s = s.replace(f"x**{n}", f"x{sup}")
         s = s.replace(f"x**(-{n})", f"x⁻{sup}")
 
-    # x**(1/n) fractions — leave as-is, just strip the **
+    # x**(1/n) fractions — strip ** and use ^
     s = re.sub(r'x\*\*\(([^)]+)\)', r'x^(\1)', s)
 
-    # 3*x -> 3x  (remove * between number and variable)
+    # 3*x -> 3x  (number * variable)
     s = re.sub(r'(\d)\*x', r'\1x', s)
-    # Remove * between number and ln/sin/cos etc.
-    s = re.sub(r'(\d)\*(ln|sin|cos|tan|exp)', r'\1\2', s)
 
-    # Clean up any double spaces
+    # Remove * between number and ln/sin/cos etc.
+    s = re.sub(r'(\d)\*(ln|sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|arctan|arcsin|arccos|exp)', r'\1\2', s)
+
+    # x * trig/log/exp  ->  x·func  (middle dot instead of asterisk)
+    s = re.sub(r'x\*(cos|sin|tan|ln|exp|arctan|arcsin|arccos|sinh|cosh)', r'x·\1', s)
+
+    # Clean up double spaces
     s = re.sub(r'  +', ' ', s)
 
     return s.strip()
