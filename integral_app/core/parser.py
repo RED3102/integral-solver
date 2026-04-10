@@ -1,6 +1,6 @@
 """
 parser.py - Identifies the integration rule for a single term.
-Week 6 - Extended to cover trig, inverse trig, hyperbolic, and constant multiple rules.
+Week 8 - Added Integration by Parts detection.
 """
 
 import sympy
@@ -62,15 +62,56 @@ def identify_rule(term: sympy.Expr) -> tuple:
     if base == sympy.cosh(x):
         return ("Hyperbolic Rule", "integral(cosh(x)) dx = sinh(x)")
 
-    # Logarithm
+    # Logarithm — must come before IBP so log(x) alone uses Logarithmic Rule
     if base == log(x):
         return ("Logarithmic Rule", "integral(ln(x)) dx = x*ln(x) - x")
+
+    # Integration by Parts — products of polynomial × function
+    if _is_integration_by_parts(term) or (coeff != 1 and _is_integration_by_parts(base)):
+        return ("Integration by Parts", "integral(u dv) dx = u*v - integral(v du) dx")
 
     # Constant Multiple Rule — fallback when base has no specific rule
     if coeff != 1:
         return ("Constant Multiple Rule", "integral(c*f(x)) dx = c * integral(f(x)) dx")
 
     return ("Standard Integration", "integral(f(x)) dx  [computed by SymPy]")
+
+
+def _is_integration_by_parts(term: sympy.Expr) -> bool:
+    """
+    Detects expressions that are best handled by integration by parts.
+    Covers: x*sin(x), x*cos(x), x*exp(x), x*log(x), x*arctan(x), x*arcsin(x)
+    Note: log(x) alone is handled by the Logarithmic Rule above, not here.
+    """
+    if term == atan(x) or term == asin(x):
+        return True
+
+    if isinstance(term, Mul):
+        factors = term.args
+        has_poly     = any(_is_power_of_x(f) for f in factors)
+        has_ibp_func = any(_is_ibp_function(f) for f in factors)
+        return has_poly and has_ibp_func
+
+    return False
+
+
+def _is_power_of_x(expr: sympy.Expr) -> bool:
+    """Returns True if expr is x or x^n (positive integer power)."""
+    return (
+        expr == x or
+        (isinstance(expr, Pow) and
+         expr.args[0] == x and
+         expr.args[1].is_number and
+         expr.args[1] > 0)
+    )
+
+
+def _is_ibp_function(expr: sympy.Expr) -> bool:
+    """Returns True if expr is a function type suited for IBP."""
+    return expr in {
+        sin(x), cos(x), exp(x), log(x),
+        atan(x), asin(x), sinh(x), cosh(x)
+    }
 
 
 def _split_coefficient(term: sympy.Expr):
