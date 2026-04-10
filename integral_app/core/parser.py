@@ -1,8 +1,3 @@
-"""
-parser.py - Identifies the integration rule for a single term.
-Week 8 - Added Integration by Parts detection.
-"""
-
 import sympy
 from sympy import Symbol, Pow, Mul, sin, cos, exp, log, tan, sec, csc, sinh, cosh, cot, asin, atan
 
