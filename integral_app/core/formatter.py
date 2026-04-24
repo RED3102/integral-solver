@@ -1,7 +1,3 @@
-"""
-formatter.py - Converts raw SymPy string output into readable math notation.
-"""
-
 import re
 
 

@@ -1,7 +1,3 @@
-"""
-engine.py - Symbolic integration using SymPy.
-"""
-
 import sympy
 from sympy import Symbol, Add, integrate, expand
 
