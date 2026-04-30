@@ -1,0 +1,174 @@
+"""
+exporter.py - Handles export of the solution trail to PDF and TXT files.
+Week 10 - Export Output.
+"""
+
+import os
+from datetime import datetime
+
+
+def export_txt(trail_text: str, result_text: str, filepath: str) -> bool:
+    """
+    Saves the solution trail as a plain text file.
+
+    Parameters
+    ----------
+    trail_text  : str   The full solution trail content.
+    result_text : str   The result line (e.g. integral(...) = ... + C).
+    filepath    : str   Full path to save the file.
+
+    Returns True on success, False on failure.
+    """
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        divider   = "-" * 55
+
+        content = "\n".join([
+            "IntegralSolver — Solution Trail Export",
+            divider,
+            f"Exported : {timestamp}",
+            divider,
+            "",
+            "RESULT",
+            divider,
+            f"  {result_text}",
+            "",
+            divider,
+            "",
+            trail_text,
+        ])
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(content)
+        return True
+
+    except Exception:
+        return False
+
+
+# ── PDF Export ────────────────────────────────────────────────────────────────
+
+def export_pdf(trail_text: str, result_text: str, filepath: str) -> bool:
+    """
+    Saves the solution trail as a formatted PDF file using reportlab.
+
+    Parameters
+    ----------
+    trail_text  : str   The full solution trail content.
+    result_text : str   The result line.
+    filepath    : str   Full path to save the .pdf file.
+
+    Returns True on success, False on failure.
+    """
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.units import mm
+        from reportlab.lib import colors
+        from reportlab.platypus import (
+            SimpleDocTemplate, Paragraph, Spacer, HRFlowable, Preformatted
+        )
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_LEFT, TA_CENTER
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        doc = SimpleDocTemplate(
+            filepath,
+            pagesize=A4,
+            leftMargin=20*mm, rightMargin=20*mm,
+            topMargin=20*mm, bottomMargin=20*mm
+        )
+
+        # ── Styles ────────────────────────────────────────────────────────
+        styles = getSampleStyleSheet()
+
+        title_style = ParagraphStyle("title",
+            fontName="Helvetica-Bold", fontSize=18,
+            textColor=colors.HexColor("#1F497D"),
+            spaceAfter=4, alignment=TA_LEFT)
+
+        sub_style = ParagraphStyle("sub",
+            fontName="Helvetica", fontSize=9,
+            textColor=colors.HexColor("#666666"),
+            spaceAfter=10, alignment=TA_LEFT)
+
+        label_style = ParagraphStyle("label",
+            fontName="Helvetica-Bold", fontSize=9,
+            textColor=colors.HexColor("#2E75B6"),
+            spaceBefore=10, spaceAfter=4)
+
+        result_style = ParagraphStyle("result",
+            fontName="Courier-Bold", fontSize=12,
+            textColor=colors.HexColor("#1F5C1F"),
+            backColor=colors.HexColor("#E2EFDA"),
+            borderPadding=(6, 10, 6, 10),
+            spaceAfter=12)
+
+        code_style = ParagraphStyle("code",
+            fontName="Courier", fontSize=8,
+            textColor=colors.HexColor("#1A1A1A"),
+            backColor=colors.HexColor("#F5F5F5"),
+            leading=12, spaceAfter=0)
+
+        # ── Build content ─────────────────────────────────────────────────
+        story = []
+
+        # Header
+        story.append(Paragraph("IntegralSolver", title_style))
+        story.append(Paragraph(
+            f"Indefinite Integration Generator &nbsp;&nbsp;·&nbsp;&nbsp; "
+            f"Solution Trail Export &nbsp;&nbsp;·&nbsp;&nbsp; {timestamp}",
+            sub_style))
+        story.append(HRFlowable(width="100%", thickness=1,
+                                color=colors.HexColor("#2E75B6")))
+        story.append(Spacer(1, 8*mm))
+
+        # Result
+        story.append(Paragraph("RESULT", label_style))
+        # Strip unicode chars that reportlab can't handle
+        safe_result = _safe_text(result_text)
+        story.append(Paragraph(safe_result, result_style))
+        story.append(Spacer(1, 4*mm))
+
+        # Solution trail
+        story.append(Paragraph("SOLUTION TRAIL", label_style))
+        story.append(HRFlowable(width="100%", thickness=0.5,
+                                color=colors.HexColor("#CCCCCC")))
+        story.append(Spacer(1, 3*mm))
+
+        # Render trail line by line
+        for line in trail_text.splitlines():
+            safe_line = _safe_text(line) if line.strip() else " "
+            story.append(Preformatted(safe_line, code_style))
+
+        story.append(Spacer(1, 8*mm))
+        story.append(HRFlowable(width="100%", thickness=0.5,
+                                color=colors.HexColor("#CCCCCC")))
+        story.append(Paragraph(
+            f"Generated by IntegralSolver &nbsp;|&nbsp; {timestamp}",
+            sub_style))
+
+        doc.build(story)
+        return True
+
+    except Exception as e:
+        print(f"PDF export error: {e}")
+        return False
+
+
+def _safe_text(text: str) -> str:
+    """
+    Strips or replaces Unicode characters that reportlab cannot render
+    with standard fonts. Keeps ASCII and common math symbols.
+    """
+    replacements = {
+        "²": "^2", "³": "^3", "⁴": "^4", "⁵": "^5",
+        "⁶": "^6", "⁷": "^7", "⁸": "^8", "⁹": "^9",
+        "·": "*",  "∫": "integral",
+        "√": "sqrt", "π": "pi",
+        "⌫": "<-",  "→": "->",
+        "\u2014": "--", "\u2013": "-",
+    }
+    for orig, repl in replacements.items():
+        text = text.replace(orig, repl)
+    # Strip any remaining non-ASCII
+    return text.encode("ascii", errors="replace").decode("ascii").replace("?", "")

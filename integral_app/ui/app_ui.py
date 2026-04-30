@@ -1,5 +1,10 @@
+"""
+app_ui.py - Tkinter GUI for the Indefinite Integration Generator.
+Week 9 - Added session audit log panel and copy-to-clipboard button.
+"""
+
 import tkinter as tk
-from tkinter import font as tkfont, ttk
+from tkinter import font as tkfont, ttk, filedialog, messagebox
 
 from core.validator import validate_input
 from core.engine import compute_integral
@@ -7,6 +12,7 @@ from core.trail_logger import build_trail
 from core.verifier import verify
 from core.formatter import fmt
 from core.audit_log import AuditLog
+from core.exporter import export_pdf, export_txt
 
 # ── Colour palette ─────────────────────────────────────────────────────────────
 BG_MAIN    = "#0f0f1a"
@@ -24,6 +30,8 @@ BTN_INT    = "#4361ee"
 BTN_CLR    = "#334155"
 BTN_COPY   = "#0f766e"
 BTN_LOG    = "#6b21a8"
+BTN_PDF    = "#b45309"
+BTN_TXT    = "#065f46"
 DIVIDER    = "#1e293b"
 
 
@@ -128,7 +136,18 @@ class IntegrationApp(tk.Tk):
         tk.Button(input_card, text="COPY TRAIL", font=self.font_btn,
                   bg=BTN_COPY, fg="white", relief=tk.FLAT, padx=10, pady=6,
                   activebackground="#0d9488", activeforeground="white",
-                  cursor="hand2", command=self._on_copy_trail).grid(row=1, column=4)
+                  cursor="hand2", command=self._on_copy_trail).grid(row=1, column=4, padx=(0,6))
+
+        # Export buttons
+        tk.Button(input_card, text="EXPORT PDF", font=self.font_btn,
+                  bg=BTN_PDF, fg="white", relief=tk.FLAT, padx=10, pady=6,
+                  activebackground="#92400e", activeforeground="white",
+                  cursor="hand2", command=self._on_export_pdf).grid(row=1, column=5, padx=(0,6))
+
+        tk.Button(input_card, text="EXPORT TXT", font=self.font_btn,
+                  bg=BTN_TXT, fg="white", relief=tk.FLAT, padx=10, pady=6,
+                  activebackground="#064e3b", activeforeground="white",
+                  cursor="hand2", command=self._on_export_txt).grid(row=1, column=6)
 
         input_card.columnconfigure(1, weight=1)
 
@@ -435,6 +454,48 @@ class IntegrationApp(tk.Tk):
         if self._active_tab.get() == "audit":
             self._refresh_audit_view()
         self._set_status("● Audit log cleared", TEXT_DIM)
+
+    def _on_export_pdf(self):
+        """Exports the current solution trail to a PDF file."""
+        trail = self.trail_text.get("1.0", tk.END).strip()
+        result = self.answer_var.get()
+        if not trail:
+            messagebox.showwarning("Nothing to export", "Run an integration first.")
+            return
+        filepath = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf"), ("All files", "*.*")],
+            title="Export Solution Trail as PDF",
+            initialfile="solution_trail.pdf"
+        )
+        if filepath:
+            ok = export_pdf(trail, result, filepath)
+            if ok:
+                self._set_status("● PDF exported", SUCCESS)
+                self.after(2500, lambda: self._set_status("● Ready", TEXT_DIM))
+            else:
+                messagebox.showerror("Export failed", "Could not create PDF. Make sure reportlab is installed:\npip install reportlab")
+
+    def _on_export_txt(self):
+        """Exports the current solution trail to a TXT file."""
+        trail = self.trail_text.get("1.0", tk.END).strip()
+        result = self.answer_var.get()
+        if not trail:
+            messagebox.showwarning("Nothing to export", "Run an integration first.")
+            return
+        filepath = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            title="Export Solution Trail as TXT",
+            initialfile="solution_trail.txt"
+        )
+        if filepath:
+            ok = export_txt(trail, result, filepath)
+            if ok:
+                self._set_status("● TXT exported", SUCCESS)
+                self.after(2500, lambda: self._set_status("● Ready", TEXT_DIM))
+            else:
+                messagebox.showerror("Export failed", "Could not write file.")
 
     def _show_error(self, message: str):
         self.answer_var.set("⚠  " + message.splitlines()[0])
