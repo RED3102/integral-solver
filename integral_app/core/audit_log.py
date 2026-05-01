@@ -2,11 +2,7 @@ from datetime import datetime
 
 
 class AuditLog:
-    """
-    Maintains a running log of all integration attempts in the current session.
-    Each entry records the input, result, verification status, and timestamp.
-    """
-
+ 
     def __init__(self):
         self._entries = []
 

@@ -138,16 +138,7 @@ class IntegrationApp(tk.Tk):
                   activebackground="#0d9488", activeforeground="white",
                   cursor="hand2", command=self._on_copy_trail).grid(row=1, column=4, padx=(0,6))
 
-        # Export buttons
-        tk.Button(input_card, text="EXPORT PDF", font=self.font_btn,
-                  bg=BTN_PDF, fg="white", relief=tk.FLAT, padx=10, pady=6,
-                  activebackground="#92400e", activeforeground="white",
-                  cursor="hand2", command=self._on_export_pdf).grid(row=1, column=5, padx=(0,6))
 
-        tk.Button(input_card, text="EXPORT TXT", font=self.font_btn,
-                  bg=BTN_TXT, fg="white", relief=tk.FLAT, padx=10, pady=6,
-                  activebackground="#064e3b", activeforeground="white",
-                  cursor="hand2", command=self._on_export_txt).grid(row=1, column=6)
 
         input_card.columnconfigure(1, weight=1)
 
@@ -164,9 +155,19 @@ class IntegrationApp(tk.Tk):
         self.history_dropdown = ttk.Combobox(
             hist_frame, textvariable=self.history_var,
             font=tkfont.Font(family="Courier New", size=9),
-            style="Dark.TCombobox", state="readonly", width=44, values=[])
-        self.history_dropdown.pack(side=tk.LEFT)
+            style="Dark.TCombobox", state="readonly", width=28, values=[])
+        self.history_dropdown.pack(side=tk.LEFT, padx=(0, 12))
         self.history_dropdown.bind("<<ComboboxSelected>>", self._on_history_select)
+
+        # Export buttons beside history dropdown
+        tk.Button(hist_frame, text="EXPORT PDF", font=self.font_btn,
+                  bg=BTN_PDF, fg="white", relief=tk.FLAT, padx=10, pady=3,
+                  activebackground="#92400e", activeforeground="white",
+                  cursor="hand2", command=self._on_export_pdf).pack(side=tk.LEFT, padx=(0, 6))
+        tk.Button(hist_frame, text="EXPORT TXT", font=self.font_btn,
+                  bg=BTN_TXT, fg="white", relief=tk.FLAT, padx=10, pady=3,
+                  activebackground="#064e3b", activeforeground="white",
+                  cursor="hand2", command=self._on_export_txt).pack(side=tk.LEFT)
 
         # ── Result card ────────────────────────────────────────────────────
         result_card = tk.Frame(left, bg=BG_CARD, pady=12, padx=16,
@@ -474,7 +475,7 @@ class IntegrationApp(tk.Tk):
                 self._set_status("● PDF exported", SUCCESS)
                 self.after(2500, lambda: self._set_status("● Ready", TEXT_DIM))
             else:
-                messagebox.showerror("Export failed", "Could not create PDF. Make sure reportlab is installed:\npip install reportlab")
+                messagebox.showerror("Export failed", "Could not create PDF. Make sure reportlab is installed: pip install reportlab")
 
     def _on_export_txt(self):
         """Exports the current solution trail to a TXT file."""
