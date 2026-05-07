@@ -143,7 +143,7 @@ class IntegrationApp(tk.Tk):
         input_card.columnconfigure(1, weight=1)
 
         tk.Label(input_card,
-                 text="e.g.  3*x^2    sin(x)    exp(x)    x*sin(x)    3*x^2 + sin(x) - 4/x + exp(x)",
+                 text="e.g.  3*x^2    sin(x)    exp(x)    x*sin(x)    sinh(x)    1/(1+x^2)    3*x^2 + sin(x) - 4/x + exp(x)",
                  font=self.font_status, fg=TEXT_DIM, bg=BG_CARD).grid(
                  row=2, column=0, columnspan=5, sticky="w", pady=(8, 4))
 
@@ -423,7 +423,7 @@ class IntegrationApp(tk.Tk):
         self._update_history(raw)
         self._audit.record(raw, result_str, verified)
 
-        self.answer_var.set(f"∫ ( {fmt(expr)} ) dx   =   {fmt(antiderivative)}  +  C")
+        self.answer_var.set(f"∫ ({fmt(expr)}) dx  =  {fmt(antiderivative)} + C")
         self.answer_label.configure(fg=SUCCESS)
         self._set_status("● Done", SUCCESS)
 
@@ -475,7 +475,8 @@ class IntegrationApp(tk.Tk):
                 self._set_status("● PDF exported", SUCCESS)
                 self.after(2500, lambda: self._set_status("● Ready", TEXT_DIM))
             else:
-                messagebox.showerror("Export failed", "Could not create PDF. Make sure reportlab is installed: pip install reportlab")
+                messagebox.showerror("Export failed",
+                                     "Could not create PDF.\nMake sure reportlab is installed:\npip install reportlab")
 
     def _on_export_txt(self):
         """Exports the current solution trail to a TXT file."""
@@ -518,9 +519,9 @@ class IntegrationApp(tk.Tk):
         else:
             for line in text.splitlines(keepends=True):
                 stripped = line.strip()
-                if stripped.startswith("---"):
+                if any(c in stripped for c in ("═", "─", "┄")):
                     self.trail_text.insert(tk.END, line, "dim")
-                elif any(stripped.startswith(k) for k in
+                elif any(k in stripped for k in
                          ("GIVEN","STEP","FINAL","VERIFICATION")):
                     self.trail_text.insert(tk.END, line, "header")
                 elif stripped.startswith("Rule"):

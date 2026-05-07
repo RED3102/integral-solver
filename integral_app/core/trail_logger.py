@@ -1,3 +1,8 @@
+"""
+trail_logger.py - Builds the plain-text step-by-step solution trail.
+Week 11 - Improved visual structure and section headers.
+"""
+
 import sympy
 from sympy import Symbol
 from core.engine import get_terms, integrate_term
@@ -5,7 +10,11 @@ from core.parser import identify_rule
 from core.formatter import fmt
 
 x = Symbol("x")
-DIVIDER = "-" * 55
+
+# Visual dividers
+DIVIDER_HEAVY = "═" * 55
+DIVIDER_LIGHT = "─" * 55
+DIVIDER_DOT   = "┄" * 55
 
 
 def _join_terms(term_results):
@@ -32,29 +41,28 @@ def build_trail(expr, antiderivative, verification_msg):
     terms = get_terms(expr)
     multi = len(terms) > 1
 
-    # GIVEN
-    lines.append(DIVIDER)
-    lines.append("GIVEN")
-    lines.append(DIVIDER)
-    lines.append(f"  integral( {expr_str} ) dx")
-    lines.append("")
+    # ── GIVEN ──────────────────────────────────────────────────────────────
+    lines.append(DIVIDER_HEAVY)
+    lines.append("  GIVEN")
+    lines.append(DIVIDER_HEAVY)
+    lines.append(f"\n  ∫ ( {expr_str} ) dx\n")
 
-    # STEP 1: Linearity — multi-term only
+    # ── STEP 1: Linearity ──────────────────────────────────────────────────
     if multi:
-        lines.append(DIVIDER)
-        lines.append("STEP 1 - Linearity of Integration")
-        lines.append(DIVIDER)
-        lines.append("  integral(a + b + c) dx = integral(a) dx + integral(b) dx + ...")
-        lines.append("  = " + " + ".join(f"integral({fmt(t)}) dx" for t in terms))
+        lines.append(DIVIDER_LIGHT)
+        lines.append("  STEP 1  —  Linearity of Integration")
+        lines.append(DIVIDER_LIGHT)
+        lines.append("\n  ∫(a + b + c) dx = ∫a dx + ∫b dx + ∫c dx + …\n")
+        lines.append("  = " + "  +  ".join(f"∫({fmt(t)}) dx" for t in terms))
         lines.append("")
         step_num = 2
     else:
         step_num = 1
 
-    # STEP 2: Integrate each term
-    lines.append(DIVIDER)
-    lines.append(f"STEP {step_num} - Integrate Each Term")
-    lines.append(DIVIDER)
+    # ── STEP 2: Integrate each term ────────────────────────────────────────
+    lines.append(DIVIDER_LIGHT)
+    lines.append(f"  STEP {step_num}  —  Integrate Each Term")
+    lines.append(DIVIDER_LIGHT)
 
     term_results = []
     for i, term in enumerate(terms, start=1):
@@ -63,36 +71,43 @@ def build_trail(expr, antiderivative, verification_msg):
         except ValueError:
             result = sympy.Symbol("?")
         rule_name, rule_formula = identify_rule(term)
-        lines.append(f"\n  Term {i}: integral( {fmt(term)} ) dx")
-        lines.append(f"  Rule    : {rule_name}")
-        lines.append(f"  Formula : {rule_formula}")
-        lines.append(f"  Result  : {fmt(result)}")
+
+        lines.append(f"\n  Term {i}")
+        lines.append(DIVIDER_DOT)
+        lines.append(f"  Expression :  ∫( {fmt(term)} ) dx")
+        lines.append(f"  Rule       :  {rule_name}")
+        if rule_name == "Standard Integration":
+            lines.append(f"  Note       :  No single standard rule applies.")
+            lines.append(f"                SymPy computed this directly.")
+        else:
+            lines.append(f"  Formula    :  {rule_formula}")
+        lines.append(f"  Result     :  {fmt(result)}")
         term_results.append(result)
+
     lines.append("")
 
-    # STEP 3: Combine — multi-term only
+    # ── STEP 3: Combine ────────────────────────────────────────────────────
     if multi:
-        lines.append(DIVIDER)
-        lines.append(f"STEP {step_num + 1} - Combine Results")
-        lines.append(DIVIDER)
-        lines.append(_join_terms(term_results))
-        lines.append(f"  Simplified: {fmt(antiderivative)}")
-        lines.append("")
+        lines.append(DIVIDER_LIGHT)
+        lines.append(f"  STEP {step_num + 1}  —  Combine Results")
+        lines.append(DIVIDER_LIGHT)
+        lines.append(f"\n{_join_terms(term_results)}")
+        lines.append(f"\n  Simplified:  {fmt(antiderivative)}\n")
 
-    # FINAL ANSWER
-    lines.append(DIVIDER)
-    lines.append("FINAL ANSWER")
-    lines.append(DIVIDER)
-    lines.append(f"  integral( {expr_str} ) dx  =  {fmt(antiderivative)} + C")
+    # ── FINAL ANSWER ───────────────────────────────────────────────────────
+    lines.append(DIVIDER_HEAVY)
+    lines.append("  FINAL ANSWER")
+    lines.append(DIVIDER_HEAVY)
+    lines.append(f"\n  ∫ ( {expr_str} ) dx  =  {fmt(antiderivative)}  +  C\n")
+
+    # ── VERIFICATION ───────────────────────────────────────────────────────
+    lines.append(DIVIDER_LIGHT)
+    lines.append("  VERIFICATION")
+    lines.append(DIVIDER_LIGHT)
     lines.append("")
-
-    # VERIFICATION
-    lines.append(DIVIDER)
-    lines.append("VERIFICATION")
-    lines.append(DIVIDER)
     for vline in verification_msg.splitlines():
         lines.append(f"  {vline}")
     lines.append("")
-    lines.append(DIVIDER)
+    lines.append(DIVIDER_HEAVY)
 
     return "\n".join(lines)
