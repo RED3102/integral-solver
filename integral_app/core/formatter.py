@@ -1,8 +1,3 @@
-"""
-formatter.py - Converts raw SymPy string output into readable math notation.
-Week 11 - Additional polish for fractional powers and product notation.
-"""
-
 import re
 
 

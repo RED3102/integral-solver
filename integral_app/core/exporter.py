@@ -1,8 +1,3 @@
-"""
-exporter.py - Handles export of the solution trail to PDF and TXT files.
-Week 10 - Export Output.
-"""
-
 import os
 from datetime import datetime
 

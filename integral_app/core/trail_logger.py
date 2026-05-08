@@ -1,8 +1,3 @@
-"""
-trail_logger.py - Builds the comprehensive step-by-step solution trail.
-Week 11 - Extended analysis with function profiling and rule explanations.
-"""
-
 import sympy
 from sympy import Symbol, Poly, Pow, Mul, sin, cos, exp, log, tan, sec, csc, sinh, cosh
 from core.engine import get_terms, integrate_term

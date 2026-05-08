@@ -1,8 +1,3 @@
-"""
-verifier.py - Comprehensive verification with detailed mathematical analysis.
-Week 11 - Extended breakdown with expanded/simplified forms.
-"""
-
 import sympy
 from sympy import Symbol, diff, simplify, expand, factor
 from core.formatter import fmt
