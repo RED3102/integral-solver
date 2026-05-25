@@ -1,8 +1,3 @@
-"""
-app_ui.py - Tkinter GUI for the Indefinite Integration Generator.
-Week 9 - Added session audit log panel and copy-to-clipboard button.
-"""
-
 import tkinter as tk
 from tkinter import font as tkfont, ttk, filedialog, messagebox
 
@@ -10,7 +5,7 @@ from core.validator import validate_input
 from core.engine import compute_integral
 from core.trail_logger import build_trail
 from core.verifier import verify
-from core.formatter import fmt
+from core.formatter import fmt, prettify_input
 from core.audit_log import AuditLog
 from core.exporter import export_pdf, export_txt
 
@@ -376,6 +371,14 @@ class IntegrationApp(tk.Tk):
             "Left","Right","Up","Down","Home","End"
         ):
             return
+        # Live superscript conversion: x^2 → x²
+        current = self.entry.get()
+        pretty, offset = prettify_input(current)
+        if offset != 0:
+            pos = self.entry.index(tk.INSERT) + offset
+            self.entry.delete(0, tk.END)
+            self.entry.insert(0, pretty)
+            self.entry.icursor(max(0, pos))
         self.answer_var.set("—")
         self.answer_label.configure(fg=SUCCESS)
         if self._active_tab.get() == "trail":

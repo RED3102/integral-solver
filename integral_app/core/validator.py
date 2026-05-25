@@ -1,4 +1,5 @@
 import sympy
+from core.formatter import display_to_raw
 from sympy.parsing.sympy_parser import (
     parse_expr,
     standard_transformations,
@@ -18,6 +19,8 @@ def validate_input(raw_input: str):
     Returns (is_valid, error_message, parsed_expression).
     """
     stripped = raw_input.strip()
+    # Convert any superscript display characters back to parseable form
+    stripped = display_to_raw(stripped)
 
     # Check 1: empty input
     if not stripped:

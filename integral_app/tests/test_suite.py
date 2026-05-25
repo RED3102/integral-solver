@@ -1,4 +1,3 @@
-
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -8,11 +7,6 @@ import sympy
 from sympy import Symbol, sin, cos, exp, log, tan, sinh, cosh
 
 x = Symbol("x")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# validator.py tests
-# ══════════════════════════════════════════════════════════════════════════════
 
 from core.validator import validate_input
 
@@ -77,10 +71,7 @@ class TestValidator:
         ok, msg, expr = validate_input("x^3")
         assert ok is True
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 # engine.py tests
-# ══════════════════════════════════════════════════════════════════════════════
 
 from core.engine import compute_integral, get_terms, integrate_term
 
@@ -153,9 +144,7 @@ class TestEngine:
         assert sympy.simplify(result - (-cos(x))) == 0
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 # parser.py tests
-# ══════════════════════════════════════════════════════════════════════════════
 
 from core.parser import identify_rule
 
@@ -223,9 +212,7 @@ class TestParser:
         assert self._rule("3*x^2") == "Power Rule"
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 # formatter.py tests
-# ══════════════════════════════════════════════════════════════════════════════
 
 from core.formatter import fmt
 
@@ -268,9 +255,7 @@ class TestFormatter:
         assert result == "-1/x"
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 # verifier.py tests
-# ══════════════════════════════════════════════════════════════════════════════
 
 from core.verifier import verify
 from core.engine import compute_integral
@@ -321,9 +306,7 @@ class TestVerifier:
         assert len(msg) > 0
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 # Integration tests — full pipeline
-# ══════════════════════════════════════════════════════════════════════════════
 
 from core.trail_logger import build_trail
 
